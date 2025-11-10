@@ -42,14 +42,16 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl p-6 max-w-md w-full shadow-2xl animate-fade-in"
+        className="bg-[#0b0e14]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-[0_0_0_1px_rgba(255,255,255,0.06),0_40px_120px_-40px_rgba(0,0,0,0.9)] animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {title && <h2 className="text-2xl font-bold mb-4">{title}</h2>}
+        {title && (
+          <h2 className="text-2xl font-bold mb-4 text-gray-100">{title}</h2>
+        )}
         {children}
       </div>
     </div>
@@ -189,9 +191,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export function Input({ label, className = "", ...props }: InputProps) {
   return (
     <div className="flex flex-col gap-2">
-      {label && <label className="text-sm font-medium">{label}</label>}
+      {label && (
+        <label className="text-sm font-medium text-gray-300">{label}</label>
+      )}
       <input
-        className={`px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-black focus:outline-none transition-colors min-h-11 ${className}`}
+        className={`px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:border-cyan-400/50 focus:outline-none focus:ring-2 focus:ring-cyan-400/20 transition-colors min-h-11 text-gray-100 placeholder:text-gray-500 ${className}`}
         {...props}
       />
     </div>
