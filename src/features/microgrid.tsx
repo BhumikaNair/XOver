@@ -26,12 +26,12 @@ export function MicroGrid({
   return (
     <div
       className={`
-        relative grid grid-cols-3 gap-1 p-2 rounded-lg transition-all duration-200
+        relative grid grid-cols-3 gap-0.5 sm:gap-1 p-1 sm:p-2 rounded-md sm:rounded-lg transition-all duration-200
         ${
           isActive && !winner
             ? isXTurn
-              ? "bg-cyan-500/10 ring-2 ring-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
-              : "bg-red-500/10 ring-2 ring-red-400/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+              ? "bg-cyan-500/10 ring-1 sm:ring-2 ring-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+              : "bg-red-500/10 ring-1 sm:ring-2 ring-red-400/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
             : "bg-white/5"
         }
         ${winner ? "bg-white/10" : ""}
@@ -46,7 +46,7 @@ export function MicroGrid({
           disabled={disabled || !!winner || !!cell}
           className={`
             aspect-square flex items-center justify-center bg-white/10 rounded border border-white/10
-            transition-all duration-150 min-h-11 min-w-11
+            transition-all duration-150
             ${
               !winner && !cell && !disabled
                 ? "hover:bg-white/20 cursor-pointer active:scale-95"
@@ -60,7 +60,7 @@ export function MicroGrid({
           {cell && (
             <Icon
               type={cell.toLowerCase() as "x" | "o"}
-              className={`w-6 h-6 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 ${
                 cell === "X" ? "text-cyan-400" : "text-red-400"
               }`}
             />
@@ -72,7 +72,7 @@ export function MicroGrid({
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <Icon
             type={winner.toLowerCase() as "x" | "o"}
-            className={`w-20 h-20 ${
+            className={`w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 ${
               winner === "X" ? "text-cyan-400" : "text-red-400"
             } opacity-80`}
           />
@@ -81,7 +81,9 @@ export function MicroGrid({
 
       {winner === "draw" && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <span className="text-4xl font-bold text-gray-400 opacity-80">-</span>
+          <span className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-400 opacity-80">
+            -
+          </span>
         </div>
       )}
     </div>

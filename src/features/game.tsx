@@ -331,31 +331,31 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
       />
 
       {/* Top Header - Logo Only */}
-      <div className="relative z-10 flex items-center justify-between p-6">
-        <img src="/logo_2.svg" alt="XOver" className="h-12 w-auto" />
+      <div className="relative z-10 flex items-center justify-between p-3 sm:p-6">
+        <img src="/logo_2.svg" alt="XOver" className="h-8 sm:h-12 w-auto" />
       </div>
 
       {/* Main Game Area - Centered */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-0 px-6 py-6">
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-start sm:justify-center min-h-0 px-2 sm:px-6 py-2 sm:py-6 overflow-y-auto sm:overflow-hidden overflow-x-hidden">
         {/* Error Messages */}
         {error && (
-          <div className="mb-2 bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-2.5 rounded-lg backdrop-blur-xl max-w-md animate-pulse">
+          <div className="mb-2 bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-2.5 rounded-lg backdrop-blur-xl max-w-md animate-pulse text-sm">
             {error}
           </div>
         )}
 
         {/* Turn Indicator - Centered Above Grid */}
         <div
-          className={`mb-3 px-4 py-2 rounded-lg backdrop-blur-xl border transition-all duration-300 ${
+          className={`mb-2 sm:mb-3 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg backdrop-blur-xl border transition-all duration-300 ${
             gameState.currentPlayer === "X"
               ? "bg-cyan-500/5 border-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
               : "bg-red-500/5 border-red-400/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
           }`}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <Icon
               type={gameState.currentPlayer.toLowerCase() as "x" | "o"}
-              className={`w-5 h-5 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 ${
                 gameState.currentPlayer === "X"
                   ? "text-cyan-400"
                   : "text-red-400"
@@ -363,7 +363,7 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
             />
             <div className="flex items-baseline gap-1.5">
               <span
-                className={`text-base font-semibold ${
+                className={`text-sm sm:text-base font-semibold ${
                   gameState.currentPlayer === "X"
                     ? "text-cyan-300"
                     : "text-red-300"
@@ -372,12 +372,12 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
                 Player {gameState.currentPlayer}
               </span>
               {gameState.nextMicroIndex !== null && (
-                <span className="text-base text-gray-400 font-normal">
+                <span className="text-sm sm:text-base text-gray-400 font-normal">
                   • Board {gameState.nextMicroIndex + 1}
                 </span>
               )}
               {gameState.nextMicroIndex === null && !gameState.winner && (
-                <span className="text-base text-gray-400 font-normal">
+                <span className="text-sm sm:text-base text-gray-400 font-normal">
                   • Any board
                 </span>
               )}
@@ -385,9 +385,9 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
           </div>
         </div>
 
-        {/* Game Board */}
+        {/* Game Board - Responsive and Scrollable */}
         <div
-          className={`grid grid-cols-3 gap-3 max-w-3xl w-full aspect-square p-5 rounded-3xl backdrop-blur-xl border-2 transition-all duration-300 shadow-2xl mb-6 ${
+          className={`grid grid-cols-3 gap-1.5 sm:gap-2 md:gap-3 w-full max-w-[95vw] sm:max-w-2xl md:max-w-3xl aspect-square p-2 sm:p-3 md:p-5 rounded-2xl sm:rounded-3xl backdrop-blur-xl border-2 transition-all duration-300 shadow-2xl mb-3 sm:mb-6 ${
             gameState.currentPlayer === "X"
               ? "bg-cyan-500/5 border-cyan-400/30 shadow-[0_0_60px_rgba(6,182,212,0.25)]"
               : "bg-red-500/5 border-red-400/30 shadow-[0_0_60px_rgba(239,68,68,0.25)]"
@@ -415,14 +415,14 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
         </div>
       </div>
 
-      {/* Fixed Control Buttons - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+      {/* Fixed Control Buttons - Bottom Right - Mobile Responsive */}
+      <div className="fixed bottom-3 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col gap-1.5 sm:gap-2">
         {mode === "local" && (
           <Button
             onClick={handleUndo}
             disabled={!canUndo || gameState.moveHistory.length === 0}
             variant="secondary"
-            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-20 disabled:cursor-not-allowed backdrop-blur-xl transition-colors text-sm text-gray-300"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-20 disabled:cursor-not-allowed backdrop-blur-xl transition-colors text-xs sm:text-sm text-gray-300"
             title="Undo Last Move"
           >
             ↶ Undo
@@ -431,7 +431,7 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
         <Button
           onClick={handleNewGame}
           variant="secondary"
-          className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl transition-colors text-sm text-gray-300"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl transition-colors text-xs sm:text-sm text-gray-300"
           title="Start New Game"
         >
           ⟳ New
@@ -439,21 +439,21 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
         <Button
           variant="ghost"
           onClick={() => setShowResignConfirm(true)}
-          className="px-4 py-2 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-400/30 text-gray-400 hover:text-red-300 backdrop-blur-xl transition-colors text-sm"
+          className="px-3 py-1.5 sm:px-4 sm:py-2 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-400/30 text-gray-400 hover:text-red-300 backdrop-blur-xl transition-colors text-xs sm:text-sm"
           title="Exit Game"
         >
           Exit
         </Button>
       </div>
 
-      {/* Connection UI - Bottom Left */}
+      {/* Connection UI - Bottom Left - Mobile Responsive */}
       {mode === "online" && sessionCode && (
-        <div className="fixed bottom-6 left-6 z-50 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-xl">
-          <div className="space-y-3.5">
+        <div className="fixed bottom-3 left-3 sm:bottom-6 sm:left-6 z-50 bg-white/5 backdrop-blur-xl border border-white/10 rounded-lg sm:rounded-xl p-2.5 sm:p-4 shadow-xl max-w-[calc(100vw-120px)] sm:max-w-none">
+          <div className="space-y-2 sm:space-y-3.5">
             {/* Player Identity */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 sm:gap-2.5">
               <div
-                className={`p-2 rounded-lg ${
+                className={`p-1.5 sm:p-2 rounded-lg ${
                   myPlayer === "X"
                     ? "bg-cyan-500/10 border border-cyan-400/30"
                     : "bg-red-500/10 border border-red-400/30"
@@ -461,17 +461,17 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
               >
                 <Icon
                   type={myPlayer?.toLowerCase() as "x" | "o"}
-                  className={`w-5 h-5 ${
+                  className={`w-4 h-4 sm:w-5 sm:h-5 ${
                     myPlayer === "X" ? "text-cyan-400" : "text-red-400"
                   }`}
                 />
               </div>
               <div>
-                <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">
+                <div className="text-[9px] sm:text-[10px] text-gray-500 font-medium uppercase tracking-wide">
                   You are
                 </div>
                 <span
-                  className={`text-sm font-semibold ${
+                  className={`text-xs sm:text-sm font-semibold ${
                     myPlayer === "X" ? "text-cyan-300" : "text-red-300"
                   }`}
                 >
@@ -484,8 +484,8 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
             <div className="border-t border-white/10"></div>
 
             {/* Connection Status */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 flex items-center justify-center">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <div className="w-7 sm:w-9 flex items-center justify-center">
                 <SmallBadge
                   variant={connection === "connected" ? "success" : "warning"}
                 >
@@ -493,10 +493,10 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
                 </SmallBadge>
               </div>
               <div>
-                <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">
+                <div className="text-[9px] sm:text-[10px] text-gray-500 font-medium uppercase tracking-wide">
                   Status
                 </div>
-                <span className="text-xs text-gray-300 font-medium">
+                <span className="text-[11px] sm:text-xs text-gray-300 font-medium">
                   {connection === "connected"
                     ? "Connected"
                     : connection === "connecting"
@@ -511,11 +511,11 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
 
             {/* Session Code */}
             <div>
-              <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wide mb-1.5">
+              <div className="text-[9px] sm:text-[10px] text-gray-500 font-medium uppercase tracking-wide mb-1 sm:mb-1.5">
                 Session Code
               </div>
               <div className="flex items-center bg-white/10 border border-white/10 rounded-lg overflow-hidden">
-                <code className="flex-1 px-2.5 py-1.5 text-cyan-300 text-xs font-mono">
+                <code className="flex-1 px-2 sm:px-2.5 py-1 sm:py-1.5 text-cyan-300 text-[11px] sm:text-xs font-mono">
                   {sessionCode}
                 </code>
                 <button
@@ -526,7 +526,7 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
                       console.error("Failed to copy:", err);
                     }
                   }}
-                  className="px-2.5 py-1.5 hover:bg-white/10 text-gray-400 hover:text-cyan-300 transition-colors border-l border-white/10"
+                  className="px-2 sm:px-2.5 py-1 sm:py-1.5 hover:bg-white/10 text-gray-400 hover:text-cyan-300 transition-colors border-l border-white/10"
                   title="Copy to clipboard"
                 >
                   ⧉
