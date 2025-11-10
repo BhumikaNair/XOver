@@ -80,10 +80,10 @@ export default function Home() {
         setMode("join");
         setShowJoinModal(false);
       } else {
-        setError("Session not found. Check the code.");
+        setError("Session not found. Please check the code and try again.");
       }
     } catch {
-      setError("Network error. Try again.");
+      setError("Network error. Please check your connection and try again.");
     } finally {
       setLoading(null);
     }

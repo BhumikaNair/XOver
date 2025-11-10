@@ -61,9 +61,14 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
 interface CopyButtonProps {
   text: string;
   label?: string;
+  iconOnly?: boolean;
 }
 
-export function CopyButton({ text, label = "Copy" }: CopyButtonProps) {
+export function CopyButton({
+  text,
+  label = "Copy",
+  iconOnly = false,
+}: CopyButtonProps) {
   const [copied, setCopied] = React.useState(false);
 
   const handleCopy = async () => {
@@ -77,8 +82,19 @@ export function CopyButton({ text, label = "Copy" }: CopyButtonProps) {
   };
 
   return (
-    <Button onClick={handleCopy} variant="secondary">
-      {copied ? "✓ Copied!" : label}
+    <Button
+      onClick={handleCopy}
+      variant="secondary"
+      className={`flex items-center justify-center gap-1.5
+    bg-white/10 hover:bg-white/20 
+    border border-white/20 
+    text-gray-200 
+    rounded-xl 
+    transition-all duration-200 
+    ${iconOnly ? "px-2 py-1 min-w-0" : "px-3 py-1.5"}`}
+      title={copied ? "Copied!" : "Copy to clipboard"}
+    >
+      {iconOnly ? (copied ? "✓" : "⧉") : copied ? "✓ Copied!" : label}
     </Button>
   );
 }
@@ -90,9 +106,9 @@ interface SmallBadgeProps {
 
 export function SmallBadge({ children, variant = "default" }: SmallBadgeProps) {
   const variantClasses = {
-    default: "bg-gray-200 text-gray-800",
-    success: "bg-green-100 text-green-800",
-    warning: "bg-yellow-100 text-yellow-800",
+    default: "bg-white/10 text-gray-300 border border-white/10",
+    success: "bg-emerald-500/10 text-emerald-300 border border-emerald-500/30",
+    warning: "bg-yellow-500/10 text-yellow-300 border border-yellow-500/30",
   };
 
   return (

@@ -9,6 +9,7 @@ interface MicroGridProps {
   onCellClick: (cellIndex: number) => void;
   winner: MicroWinner;
   disabled?: boolean;
+  currentPlayer?: Player;
 }
 
 export function MicroGrid({
@@ -18,17 +19,22 @@ export function MicroGrid({
   onCellClick,
   winner,
   disabled = false,
+  currentPlayer,
 }: MicroGridProps) {
+  const isXTurn = currentPlayer === "X";
+
   return (
     <div
       className={`
         relative grid grid-cols-3 gap-1 p-2 rounded-lg transition-all duration-200
         ${
           isActive && !winner
-            ? "bg-blue-100 ring-2 ring-blue-500"
-            : "bg-gray-50"
+            ? isXTurn
+              ? "bg-cyan-500/10 ring-2 ring-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+              : "bg-red-500/10 ring-2 ring-red-400/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+            : "bg-white/5"
         }
-        ${winner ? "bg-gray-200" : ""}
+        ${winner ? "bg-white/10" : ""}
       `}
       role="grid"
       aria-label={`Micro board ${index + 1}`}
@@ -39,11 +45,11 @@ export function MicroGrid({
           onClick={() => !disabled && !winner && onCellClick(cellIndex)}
           disabled={disabled || !!winner || !!cell}
           className={`
-            aspect-square flex items-center justify-center bg-white rounded
+            aspect-square flex items-center justify-center bg-white/10 rounded border border-white/10
             transition-all duration-150 min-h-11 min-w-11
             ${
               !winner && !cell && !disabled
-                ? "hover:bg-gray-100 cursor-pointer active:scale-95"
+                ? "hover:bg-white/20 cursor-pointer active:scale-95"
                 : ""
             }
             ${cell ? "cursor-not-allowed" : ""}
@@ -55,7 +61,7 @@ export function MicroGrid({
             <Icon
               type={cell.toLowerCase() as "x" | "o"}
               className={`w-6 h-6 ${
-                cell === "X" ? "text-blue-600" : "text-red-600"
+                cell === "X" ? "text-cyan-400" : "text-red-400"
               }`}
             />
           )}
@@ -67,7 +73,7 @@ export function MicroGrid({
           <Icon
             type={winner.toLowerCase() as "x" | "o"}
             className={`w-20 h-20 ${
-              winner === "X" ? "text-blue-600" : "text-red-600"
+              winner === "X" ? "text-cyan-400" : "text-red-400"
             } opacity-80`}
           />
         </div>

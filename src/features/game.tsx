@@ -33,14 +33,22 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
   >("disconnected");
   const [error, setError] = useState<string | null>(null);
   const [showResignConfirm, setShowResignConfirm] = useState(false);
+  const [canUndo, setCanUndo] = useState(true); // Track if undo is available
+  const [showWinModal, setShowWinModal] = useState(false);
+
+  // Random player assignment for online mode
+  const myPlayerRef = useRef<Player | null>(null);
+  if (mode === "online" && myPlayerRef.current === null) {
+    // Random assignment: 50% chance to be X or O regardless of host status
+    myPlayerRef.current = Math.random() < 0.5 ? "X" : "O";
+  }
+  const myPlayer = mode === "local" ? null : myPlayerRef.current;
 
   const peerConnection = useRef<RTCPeerConnection | null>(null);
   const dataChannel = useRef<RTCDataChannel | null>(null);
   const signalingClient = useRef<SignalingClient | null>(null);
   const pollingInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const processedIceCandidates = useRef<Set<string>>(new Set());
-
-  const myPlayer = mode === "local" ? null : isHost ? "X" : "O";
 
   const setupWebRTC = useCallback(async () => {
     if (mode !== "online" || !sessionCode) return;
@@ -240,6 +248,12 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
       gameState.currentPlayer
     );
     setGameState(newState);
+    setCanUndo(true);
+
+    // Check if this move resulted in a win and show modal
+    if (newState.winner) {
+      setShowWinModal(true);
+    }
 
     if (mode === "online" && dataChannel.current?.readyState === "open") {
       const message: GameMove = {
@@ -254,14 +268,17 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
   };
 
   const handleUndo = () => {
-    if (mode === "local") {
+    if (mode === "local" && canUndo && gameState.moveHistory.length > 0) {
       setGameState(undoLastMove(gameState));
+      setCanUndo(false);
     }
   };
 
   const handleNewGame = () => {
     setGameState(createInitialState());
     setError(null);
+    setCanUndo(true);
+    setShowWinModal(false);
   };
 
   const handleResign = () => {
@@ -273,6 +290,13 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
     setShowResignConfirm(false);
   };
 
+  const handleExitToHome = () => {
+    setShowWinModal(false);
+    if (onExit) {
+      onExit();
+    }
+  };
+
   const canPlayInMicro = (microIndex: number): boolean => {
     if (gameState.winner) return false;
     if (gameState.microWinners[microIndex] !== null) return false;
@@ -281,89 +305,93 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex flex-col gap-4 mb-6">
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <h1 className="text-3xl font-bold">XOver</h1>
-            <div className="flex gap-2 items-center flex-wrap">
-              {mode === "online" && sessionCode && (
-                <div className="flex gap-2 items-center">
-                  <SmallBadge
-                    variant={connection === "connected" ? "success" : "warning"}
-                  >
-                    {connection === "connected"
-                      ? "● Connected"
-                      : "○ Connecting..."}
-                  </SmallBadge>
-                  <code className="px-3 py-1 bg-black text-white rounded font-mono text-sm">
-                    {sessionCode}
-                  </code>
-                  <CopyButton text={sessionCode} label="Copy Code" />
-                </div>
-              )}
-              <Button
-                variant="ghost"
-                onClick={() => setShowResignConfirm(true)}
+    <div className="h-screen overflow-hidden bg-[#0b0e14] text-gray-100 relative flex flex-col">
+      {/* Background effects */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-30"
+        style={{
+          backgroundImage:
+            "radial-gradient(1000px 600px at 50% -20%, rgba(80,120,255,0.25), rgba(0,0,0,0)), radial-gradient(600px 600px at 120% 20%, rgba(0,255,200,0.2), rgba(0,0,0,0))",
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          maskImage:
+            "radial-gradient(1200px 600px at 50% 0%, rgba(0,0,0,1), transparent)",
+          WebkitMaskImage:
+            "radial-gradient(1200px 600px at 50% 0%, rgba(0,0,0,1), transparent)",
+          background:
+            "linear-gradient(to bottom, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px)",
+          backgroundSize: "48px 48px, 48px 48px",
+          transform: "translateZ(0)",
+        }}
+      />
+
+      {/* Top Header - Logo Only */}
+      <div className="relative z-10 flex items-center justify-between p-6">
+        <img src="/logo_2.svg" alt="XOver" className="h-12 w-auto" />
+      </div>
+
+      {/* Main Game Area - Centered */}
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-0 px-6 py-6">
+        {/* Error Messages */}
+        {error && (
+          <div className="mb-2 bg-red-500/10 border border-red-500/30 text-red-300 px-4 py-2.5 rounded-lg backdrop-blur-xl max-w-md animate-pulse">
+            {error}
+          </div>
+        )}
+
+        {/* Turn Indicator - Centered Above Grid */}
+        <div
+          className={`mb-3 px-4 py-2 rounded-lg backdrop-blur-xl border transition-all duration-300 ${
+            gameState.currentPlayer === "X"
+              ? "bg-cyan-500/5 border-cyan-400/30 shadow-[0_0_15px_rgba(6,182,212,0.2)]"
+              : "bg-red-500/5 border-red-400/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+          }`}
+        >
+          <div className="flex items-center gap-2.5">
+            <Icon
+              type={gameState.currentPlayer.toLowerCase() as "x" | "o"}
+              className={`w-5 h-5 ${
+                gameState.currentPlayer === "X"
+                  ? "text-cyan-400"
+                  : "text-red-400"
+              }`}
+            />
+            <div className="flex items-baseline gap-1.5">
+              <span
+                className={`text-base font-semibold ${
+                  gameState.currentPlayer === "X"
+                    ? "text-cyan-300"
+                    : "text-red-300"
+                }`}
               >
-                Exit
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-lg font-medium">Turn:</span>
-              <div className="flex items-center gap-2">
-                <Icon
-                  type={gameState.currentPlayer.toLowerCase() as "x" | "o"}
-                  className={`w-8 h-8 ${
-                    gameState.currentPlayer === "X"
-                      ? "text-blue-600"
-                      : "text-red-600"
-                  }`}
-                />
-                <span className="text-xl font-bold">
-                  {gameState.currentPlayer}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              {mode === "local" && (
-                <Button
-                  onClick={handleUndo}
-                  disabled={gameState.moveHistory.length === 0}
-                  variant="secondary"
-                >
-                  Undo
-                </Button>
-              )}
-              <Button onClick={handleNewGame} variant="secondary">
-                New Game
-              </Button>
-            </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          {gameState.winner && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded text-center">
-              <span className="text-xl font-bold">
-                {gameState.winner === "draw"
-                  ? "It's a draw!"
-                  : `Player ${gameState.winner} wins!`}
+                Player {gameState.currentPlayer}
               </span>
+              {gameState.nextMicroIndex !== null && (
+                <span className="text-base text-gray-400 font-normal">
+                  • Board {gameState.nextMicroIndex + 1}
+                </span>
+              )}
+              {gameState.nextMicroIndex === null && !gameState.winner && (
+                <span className="text-base text-gray-400 font-normal">
+                  • Any board
+                </span>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
+        {/* Game Board */}
         <div
-          className="grid grid-cols-3 gap-3 max-w-2xl mx-auto bg-white p-4 rounded-xl shadow-lg"
+          className={`grid grid-cols-3 gap-3 max-w-3xl w-full aspect-square p-5 rounded-3xl backdrop-blur-xl border-2 transition-all duration-300 shadow-2xl mb-6 ${
+            gameState.currentPlayer === "X"
+              ? "bg-cyan-500/5 border-cyan-400/30 shadow-[0_0_60px_rgba(6,182,212,0.25)]"
+              : "bg-red-500/5 border-red-400/30 shadow-[0_0_60px_rgba(239,68,68,0.25)]"
+          }`}
           role="grid"
           aria-label="Game board"
         >
@@ -381,33 +409,212 @@ export function Game({ mode, sessionCode, isHost = false, onExit }: GameProps) {
                 !canPlayInMicro(microIndex) ||
                 (mode === "online" && gameState.currentPlayer !== myPlayer)
               }
+              currentPlayer={gameState.currentPlayer}
             />
           ))}
         </div>
-
-        {gameState.nextMicroIndex !== null && (
-          <div className="mt-6 text-center text-sm text-gray-600">
-            Next move must be in board {gameState.nextMicroIndex + 1}
-          </div>
-        )}
       </div>
+
+      {/* Fixed Control Buttons - Bottom Right */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+        {mode === "local" && (
+          <Button
+            onClick={handleUndo}
+            disabled={!canUndo || gameState.moveHistory.length === 0}
+            variant="secondary"
+            className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 disabled:opacity-20 disabled:cursor-not-allowed backdrop-blur-xl transition-colors text-sm text-gray-300"
+            title="Undo Last Move"
+          >
+            ↶ Undo
+          </Button>
+        )}
+        <Button
+          onClick={handleNewGame}
+          variant="secondary"
+          className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-xl transition-colors text-sm text-gray-300"
+          title="Start New Game"
+        >
+          ⟳ New
+        </Button>
+        <Button
+          variant="ghost"
+          onClick={() => setShowResignConfirm(true)}
+          className="px-4 py-2 bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-400/30 text-gray-400 hover:text-red-300 backdrop-blur-xl transition-colors text-sm"
+          title="Exit Game"
+        >
+          Exit
+        </Button>
+      </div>
+
+      {/* Connection UI - Bottom Left */}
+      {mode === "online" && sessionCode && (
+        <div className="fixed bottom-6 left-6 z-50 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-4 shadow-xl">
+          <div className="space-y-3.5">
+            {/* Player Identity */}
+            <div className="flex items-center gap-2.5">
+              <div
+                className={`p-2 rounded-lg ${
+                  myPlayer === "X"
+                    ? "bg-cyan-500/10 border border-cyan-400/30"
+                    : "bg-red-500/10 border border-red-400/30"
+                }`}
+              >
+                <Icon
+                  type={myPlayer?.toLowerCase() as "x" | "o"}
+                  className={`w-5 h-5 ${
+                    myPlayer === "X" ? "text-cyan-400" : "text-red-400"
+                  }`}
+                />
+              </div>
+              <div>
+                <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">
+                  You are
+                </div>
+                <span
+                  className={`text-sm font-semibold ${
+                    myPlayer === "X" ? "text-cyan-300" : "text-red-300"
+                  }`}
+                >
+                  Player {myPlayer}
+                </span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-white/10"></div>
+
+            {/* Connection Status */}
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 flex items-center justify-center">
+                <SmallBadge
+                  variant={connection === "connected" ? "success" : "warning"}
+                >
+                  {connection === "connected" ? "●" : "○"}
+                </SmallBadge>
+              </div>
+              <div>
+                <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wide">
+                  Status
+                </div>
+                <span className="text-xs text-gray-300 font-medium">
+                  {connection === "connected"
+                    ? "Connected"
+                    : connection === "connecting"
+                    ? "Connecting..."
+                    : "Disconnected"}
+                </span>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-white/10"></div>
+
+            {/* Session Code */}
+            <div>
+              <div className="text-[10px] text-gray-500 font-medium uppercase tracking-wide mb-1.5">
+                Session Code
+              </div>
+              <div className="flex items-center bg-white/10 border border-white/10 rounded-lg overflow-hidden">
+                <code className="flex-1 px-2.5 py-1.5 text-cyan-300 text-xs font-mono">
+                  {sessionCode}
+                </code>
+                <button
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(sessionCode);
+                    } catch (err) {
+                      console.error("Failed to copy:", err);
+                    }
+                  }}
+                  className="px-2.5 py-1.5 hover:bg-white/10 text-gray-400 hover:text-cyan-300 transition-colors border-l border-white/10"
+                  title="Copy to clipboard"
+                >
+                  ⧉
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Modal
         isOpen={showResignConfirm}
         onClose={() => setShowResignConfirm(false)}
         title="Exit Game?"
       >
-        <p className="mb-4">
+        <p className="mb-6 text-gray-300">
           Are you sure you want to exit? The game progress will be lost.
         </p>
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-3 justify-end">
           <Button
             variant="secondary"
             onClick={() => setShowResignConfirm(false)}
+            className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 backdrop-blur-xl"
           >
             Cancel
           </Button>
-          <Button onClick={handleResign}>Exit</Button>
+          <Button
+            onClick={handleResign}
+            className="px-5 py-2.5 bg-linear-to-r from-red-500/80 to-red-600/80 hover:from-red-400 hover:to-red-500 border-0 text-white shadow-lg"
+          >
+            Exit Game
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Win Modal */}
+      <Modal
+        isOpen={showWinModal}
+        onClose={() => setShowWinModal(false)}
+        title={
+          gameState.winner === "draw"
+            ? "🤝 It's a Draw!"
+            : `🏆 Player ${gameState.winner} Wins!`
+        }
+      >
+        <div className="text-center mb-8">
+          {gameState.winner === "draw" ? (
+            <p className="text-gray-300 text-lg">
+              The game ended in a draw. Well played!
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center justify-center gap-3">
+                <Icon
+                  type={gameState.winner?.toLowerCase() as "x" | "o"}
+                  className={`w-16 h-16 ${
+                    gameState.winner === "X" ? "text-cyan-400" : "text-red-400"
+                  }`}
+                />
+              </div>
+              <p className="text-gray-300 text-lg">
+                Congratulations!{" "}
+                <span
+                  className={`font-bold ${
+                    gameState.winner === "X" ? "text-cyan-300" : "text-red-300"
+                  }`}
+                >
+                  Player {gameState.winner}
+                </span>{" "}
+                has won the game!
+              </p>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-3 justify-center">
+          <Button
+            onClick={handleNewGame}
+            className="px-6 py-3 bg-linear-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 border border-cyan-400/30 text-cyan-300 backdrop-blur-xl transition-colors"
+          >
+            <span className="font-semibold">⟳ New Game</span>
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={handleExitToHome}
+            className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 backdrop-blur-xl transition-colors"
+          >
+            <span className="font-semibold">← Exit to Home</span>
+          </Button>
         </div>
       </Modal>
     </div>
