@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Head from "next/head";
 import { generateSessionCode } from "@/features/signaling";
 import { Game } from "@/features/game";
 import { Card } from "@/components/common/Card";
@@ -124,54 +125,91 @@ export default function Home() {
 
   // ----- MENU -----
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#0b0e14] text-gray-100">
-      <BackgroundEffects />
+    <>
+      <Head>
+        <title>XOver</title>
+        <meta name="description" content="The Ultimate Tic-Tac-Toe Game" />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-6">
-            <Card className="p-6 lg:p-8 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_80px_rgba(0,255,200,0.05)]">
-              <BrandHeader />
+        {/* Open Graph Meta Tags */}
+        <meta property="og:title" content="XOver" />
+        <meta
+          property="og:description"
+          content="The Ultimate Tic-Tac-Toe Game"
+        />
+        <meta
+          property="og:image"
+          content="https://xover-game.vercel.app/og-image.png"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://xover-game.vercel.app/" />
+        <meta property="og:site_name" content="XOver" />
 
-              <p className="mt-3 text-sm tracking-widest text-gray-400">
-                Tic it, tack it, make 'em pack it!
-              </p>
+        {/* Twitter Card Meta Tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="XOver" />
+        <meta
+          name="twitter:description"
+          content="The Ultimate Tic-Tac-Toe Game"
+        />
+        <meta
+          name="twitter:image"
+          content="https://xover-game.vercel.app/og-image.png"
+        />
+        <meta name="twitter:image:alt" content="XOver" />
+      </Head>
 
-              <ModeButtons
-                onLocalClick={() => setMode("local")}
-                onHostClick={handleHostGame}
-                onJoinClick={() => setShowJoinModal(true)}
-                loading={loading}
-              />
+      <div className="min-h-screen relative overflow-hidden bg-[#0b0e14] text-gray-100">
+        <BackgroundEffects />
 
-              {error && (
-                <InlineAlert tone="error" message={error} className="mt-4" />
-              )}
-            </Card>
+        <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+          <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-6">
+              <Card className="p-6 lg:p-8 bg-white/5 backdrop-blur-xl border border-white/10 shadow-[0_0_80px_rgba(0,255,200,0.05)]">
+                <BrandHeader />
 
-            <Card className="p-5 bg-white/5 backdrop-blur-xl border border-white/10">
-              <HowToPlaySection />
+                <p className="mt-3 text-sm tracking-widest text-gray-400">
+                  Tic it, tack it, make 'em pack it!
+                </p>
+
+                <ModeButtons
+                  onLocalClick={() => setMode("local")}
+                  onHostClick={handleHostGame}
+                  onJoinClick={() => setShowJoinModal(true)}
+                  loading={loading}
+                />
+
+                {error && (
+                  <InlineAlert tone="error" message={error} className="mt-4" />
+                )}
+              </Card>
+
+              <Card className="p-5 bg-white/5 backdrop-blur-xl border border-white/10">
+                <HowToPlaySection />
+              </Card>
+            </div>
+
+            <Card className="p-6 lg:p-7 bg-white/5 backdrop-blur-xl border border-white/10 h-full">
+              <GameRulesSection />
             </Card>
           </div>
-
-          <Card className="p-6 lg:p-7 bg-white/5 backdrop-blur-xl border border-white/10 h-full">
-            <GameRulesSection />
-          </Card>
         </div>
-      </div>
 
-      <JoinGameModal
-        isOpen={showJoinModal}
-        onClose={() => {
-          setShowJoinModal(false);
-          setError("");
-        }}
-        joinCode={joinCode}
-        onJoinCodeChange={setJoinCode}
-        onJoin={handleJoinGame}
-        error={error}
-        loading={loading === "join"}
-      />
-    </div>
+        <JoinGameModal
+          isOpen={showJoinModal}
+          onClose={() => {
+            setShowJoinModal(false);
+            setError("");
+          }}
+          joinCode={joinCode}
+          onJoinCodeChange={setJoinCode}
+          onJoin={handleJoinGame}
+          error={error}
+          loading={loading === "join"}
+        />
+      </div>
+    </>
   );
 }
